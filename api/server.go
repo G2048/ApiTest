@@ -18,23 +18,6 @@ import (
     "github.com/go-chi/httplog/v2"
 )
 
-func terminate() {
-    sigc := make(chan os.Signal, 1)
-    signal.Notify(sigc,
-        syscall.SIGHUP,
-        syscall.SIGINT,
-        syscall.SIGTERM,
-        syscall.SIGQUIT,
-        syscall.SIGKILL,
-    )
-
-    go func() {
-        <-sigc
-        println("Bye!")
-        os.Exit(0)
-    }()
-}
-
 type Server struct {
     Name    string
     Version string
