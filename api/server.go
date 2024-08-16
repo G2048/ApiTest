@@ -8,6 +8,7 @@ import (
     "os"
     "os/signal"
     "syscall"
+    "time"
 
     "ApiTest/api/routers/v1/users"
     "github.com/danielgtaylor/huma/v2"
@@ -44,8 +45,6 @@ type Server struct {
 }
 
 func NewServer(name, version, port string, logger *httplog.Logger) *Server {
-    terminate()
-
     router := chi.NewRouter()
     server := &http.Server{
         Addr:    ":" + port,
@@ -75,13 +74,23 @@ func (s *Server) Start() {
     api := huma.NewAPI(config, adapter)
 
     users.AddRouters(api)
-    err := s.server.ListenAndServe()
-    if !errors.Is(err, http.ErrServerClosed) {
-        s.logger.Error(fmt.Sprintf("Error %s by running server...", err))
-    }
+    go func() {
+        err := s.server.ListenAndServe()
+        if !errors.Is(err, http.ErrServerClosed) {
+            s.logger.Error(fmt.Sprintf("Error %s by running server...", err))
+        }
+    }()
 }
 
-func (s *Server) Stop(ctx context.Context) {
+// Gracefully shutdown the server
+func (s *Server) Stop() {
+    sigc := make(chan os.Signal, 1)
+    signal.Notify(sigc, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
+    <-sigc
+
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    defer cancel()
+
     err := s.server.Shutdown(ctx)
     if err != nil {
         s.logger.Error(fmt.Sprintf("Error %s by stopping server...", err))
