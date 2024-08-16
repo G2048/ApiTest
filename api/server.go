@@ -10,7 +10,6 @@ import (
     "syscall"
     "time"
 
-    "ApiTest/api/routers/v1/users"
     "github.com/danielgtaylor/huma/v2"
     "github.com/danielgtaylor/huma/v2/adapters/humachi"
     "github.com/go-chi/chi/v5"
@@ -25,6 +24,7 @@ type Server struct {
     logger  *httplog.Logger
     router  *chi.Mux
     server  *http.Server
+    api     huma.API
 }
 
 func NewServer(name, version, port string, logger *httplog.Logger) *Server {
@@ -41,6 +41,7 @@ func NewServer(name, version, port string, logger *httplog.Logger) *Server {
         logger:  logger,
         router:  router,
         server:  server,
+        api:     nil,
     }
 }
 
@@ -54,9 +55,8 @@ func (s *Server) Start() {
 
     config := huma.DefaultConfig(s.Name, s.Version)
     adapter := humachi.NewAdapter(s.router)
-    api := huma.NewAPI(config, adapter)
+    s.api = huma.NewAPI(config, adapter)
 
-    users.AddRouters(api)
     go func() {
         err := s.server.ListenAndServe()
         if !errors.Is(err, http.ErrServerClosed) {
@@ -83,4 +83,7 @@ func (s *Server) Stop() {
 
 func (s *Server) AddMiddleware(fn func(http.Handler) http.Handler) {
     s.router.Use(fn)
+}
+func (s *Server) AddRouter(f func(api huma.API)) {
+    f(s.api)
 }
