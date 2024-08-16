@@ -90,6 +90,6 @@ func (s *Server) Stop() {
 func (s *Server) AddMiddleware(fn func(http.Handler) http.Handler) {
     s.router.Use(fn)
 }
-func (s *Server) AddRouter(f func(api huma.API)) {
-    f(s.api)
+func (s *Server) AddRouter(f func(api *huma.API)) {
+    f(&s.api)
 }

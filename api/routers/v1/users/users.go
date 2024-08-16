@@ -30,16 +30,16 @@ type MyInput struct {
     Dependent2 string  `json:"dependent2,omitempty"`
 }
 
-func AddRouters(api huma.API) {
+func AddRouters(api *huma.API) {
 
     prefix := "/users"
-    huma.Get(api, prefix, func(ctx context.Context, input *MyInput) (*GreetingOutput, error) {
+    huma.Get(*api, prefix, func(ctx context.Context, input *MyInput) (*GreetingOutput, error) {
         output := &GreetingOutput{}
         output.Body.Message = "Welcome to Get!"
         return output, nil
     })
 
-    huma.Get(api, prefix+"/{name}", func(ctx context.Context, input *struct {
+    huma.Get(*api, prefix+"/{name}", func(ctx context.Context, input *struct {
         Name string `path:"name" maxLength:"30" example:"world" doc:"Name to greet"`
     }) (*GreetingOutput, error) {
         output := &GreetingOutput{}
@@ -47,7 +47,7 @@ func AddRouters(api huma.API) {
         return output, nil
     })
 
-    huma.Register(api, huma.Operation{
+    huma.Register(*api, huma.Operation{
         OperationID: "ID-get-greeting",
         Method:      http.MethodGet,
         Path:        "/users/{name}",
@@ -69,7 +69,7 @@ func AddRouters(api huma.API) {
         "200": &huma.Response{},
         // "201": &huma.Response{},
     }
-    huma.Register(api, huma.Operation{
+    huma.Register(*api, huma.Operation{
         OperationID:   "ID-post-review",
         Method:        http.MethodPost,
         Path:          "/users/{username}/reviews",
@@ -110,7 +110,7 @@ func AddRouters(api huma.API) {
         return nil, huma.NewError(status, "Database error")
     })
 
-    huma.Post(api, prefix, func(ctx context.Context, input *struct {
+    huma.Post(*api, prefix, func(ctx context.Context, input *struct {
         Name string `path:"name" maxLength:"30" example:"world" doc:"Name to greet"`
         Body struct {
             User string `body:"username" maxLength:"30" example:"niki" doc:"Username"`
