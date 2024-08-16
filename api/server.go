@@ -10,6 +10,8 @@ import (
     "syscall"
     "time"
 
+    "ApiTest/pkg/config"
+    "ApiTest/pkg/logs"
     "github.com/danielgtaylor/huma/v2"
     "github.com/danielgtaylor/huma/v2/adapters/humachi"
     "github.com/go-chi/chi/v5"
@@ -27,17 +29,20 @@ type Server struct {
     api     huma.API
 }
 
-func NewServer(name, version, port string, logger *httplog.Logger) *Server {
+func NewServer(settings config.ServerSettings) *Server {
+    logger := logs.NewHttpLogger(settings.LogSettings)
+    logger.Info("Start Application!")
+
     router := chi.NewRouter()
     server := &http.Server{
-        Addr:    ":" + port,
+        Addr:    ":" + settings.Port,
         Handler: router,
     }
 
     return &Server{
-        Name:    name,
-        Version: version,
-        Port:    port,
+        Name:    settings.AppName,
+        Version: settings.AppVersion,
+        Port:    settings.Port,
         logger:  logger,
         router:  router,
         server:  server,
@@ -79,6 +84,7 @@ func (s *Server) Stop() {
         s.logger.Error(fmt.Sprintf("Error %s by stopping server...", err))
     }
     s.logger.Info("Stop Server!")
+    os.Exit(0)
 }
 
 func (s *Server) AddMiddleware(fn func(http.Handler) http.Handler) {

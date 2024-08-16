@@ -3,17 +3,18 @@ package main
 import (
     "ApiTest/api"
     "ApiTest/api/routers/v1/users"
-    "ApiTest/pkg/logs"
+    "ApiTest/pkg/config"
 )
 
 const appName = "ApiTest"
 const version = "1.0.0"
 
 func main() {
-    logger := logs.NewHttpLogger(appName, "debug")
-    logger.Info("Start Application!")
+    appSettings := config.AppSettings{appName, version}
+    logSettings := config.LogSettings{appSettings, "debug"}
+    settings := config.ServerSettings{logSettings, "3333"}
 
-    server := api.NewServer(appName, version, "3333", logger)
+    server := api.NewServer(settings)
     server.Start()
     server.AddRouter(users.AddRouters)
 

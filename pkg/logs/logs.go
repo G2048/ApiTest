@@ -4,6 +4,7 @@ import (
     "log/slog"
     "time"
 
+    "ApiTest/pkg/config"
     "github.com/go-chi/httplog/v2"
 )
 
@@ -14,12 +15,12 @@ var levelMap = map[string]slog.Level{
     "error": slog.LevelError,
 }
 
-func NewHttpLogger(serviceName string, level string) *httplog.Logger {
-    levelLog, ok := levelMap[level]
+func NewHttpLogger(settings config.LogSettings) *httplog.Logger {
+    levelLog, ok := levelMap[settings.LogLevel]
     if !ok {
         levelLog = slog.LevelDebug
     }
-    return httplog.NewLogger(serviceName,
+    return httplog.NewLogger(settings.AppName,
         httplog.Options{
             LogLevel: levelLog,
             JSON:     true,
@@ -32,7 +33,7 @@ func NewHttpLogger(serviceName string, level string) *httplog.Logger {
             SourceFieldName:  "source",
             TimeFieldFormat:  time.RFC3339,
             Tags: map[string]string{
-                "version": "v1.0-81aa4244d9fc8076a",
+                "version": settings.AppVersion,
                 "env":     "dev",
             },
             QuietDownRoutes: []string{
