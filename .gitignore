@@ -109,3 +109,4 @@ gen
 go.work
 
 .*
+tmp/*
